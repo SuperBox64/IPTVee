@@ -5,6 +5,10 @@ import iptvKit
 struct PlayerView: View {
     @State private var showDetails = false
     @State private var orientation = UIDeviceOrientation.unknown
+    @State private var showErrorAlert = false
+    @State private var errorMessage = ""
+    @State private var isLoading = true
+    @State private var favorites: [Int] = UserDefaults.standard.array(forKey: "favoriteChannels") as? [Int] ?? []
     
     @ObservedObject var plo = PlayerObservable.plo
     @ObservedObject var pvc = PlayerViewControllerObservable.pvc
@@ -34,46 +38,107 @@ struct PlayerView: View {
     
     @State var isPortrait: Bool = false
     
-    var body: some View {
+    private var playerContent: some View {
+        let avPlayerView = AVPlayerView(streamID: streamID, name: name, streamIcon: streamIcon)
         
-        Group {
+        return ZStack {
+            if isPad || (isPhone && isPortrait) {
+                avPlayerView
+                    .frame(width: UIScreen.main.bounds.width, height: UIScreen.main.bounds.width * 0.5625, alignment: .top)
+                    .navigationBarHidden(false)
+                    .padding(.top, isPhone ? 15 : 0)
+            } else {
+                avPlayerView
+                    .ignoresSafeArea(.all)
+                    .edgesIgnoringSafeArea(.all)
+                    .navigationBarHidden(true)
+            }
             
-            GeometryReader { geometry in
-                Text("")
-                Form{}
-                VStack {
-                    let avPlayerView = AVPlayerView(streamID: streamID, name: name, streamIcon: streamIcon)
-                    
-                    if isPad || (isPhone && isPortrait) {
-                        avPlayerView
-                            .frame(width: geometry.size.width, height: geometry.size.width * 0.5625, alignment: .top)
-                            .navigationBarHidden(false)
-                            .padding(.top, isPhone ? 15 : 0)
-                    } else {
-                        avPlayerView
-                            .ignoresSafeArea(.all)
-                            .edgesIgnoringSafeArea(.all)
-                            .navigationBarHidden(true)
-                    }
-                    
-                    if isPortrait || isPad {
-                        NowPlayingView( epgChannelId: epgChannelId, categoryName: categoryName)
-                            .refreshable {
-                                refreshNowPlayingEpg()
-                            }
-                    }
-                }
-                .navigationBarTitleDisplayMode(.inline)
-                .navigationTitle(name)
-                .onReceive(NotificationCenter.default.publisher(for: UIDevice.orientationDidChangeNotification)) { _ in
-                    isPortrait = updatePortrait()
-                }
-                .onAppear {
-                    isPortrait = updatePortrait()
-                    plo.channelName = name
-                }
+            if isLoading && pvc.videoController.player?.rate != 0 {
+                ProgressView()
+                    .progressViewStyle(CircularProgressViewStyle(tint: .white))
+                    .scaleEffect(1.5)
+                    .offset(y: -50)  // Move spinner up to not cover controls
             }
         }
+    }
+    
+    private var nowPlayingContent: some View {
+        Group {
+            if isPortrait || isPad {
+                NowPlayingView(epgChannelId: epgChannelId, categoryName: categoryName)
+                    .refreshable {
+                        refreshNowPlayingEpg()
+                    }
+            }
+        }
+    }
+    
+    var body: some View {
+        GeometryReader { _ in
+            VStack {
+                playerContent
+                nowPlayingContent
+            }
+            .navigationBarTitleDisplayMode(.inline)
+            .navigationTitle(name)
+            .toolbar {
+                ToolbarItem(placement: .navigationBarTrailing) {
+                    Button(action: toggleFavorite) {
+                        Image(systemName: favorites.contains(streamID) ? "star.fill" : "star")
+                            .foregroundColor(.yellow)
+                            .font(.system(size: 22))
+                            .accessibilityLabel(favorites.contains(streamID) ? "Remove from Favorites" : "Add to Favorites")
+                            .accessibilityHint(favorites.contains(streamID) ? "Double tap to remove \(name) from favorites" : "Double tap to add \(name) to favorites")
+                    }
+                }
+            }
+            .alert("Playback Error", isPresented: $showErrorAlert) {
+                Button("OK", role: .cancel) { }
+            } message: {
+                Text(errorMessage)
+            }
+            .onReceive(NotificationCenter.default.publisher(for: AVPlayerItem.failedToPlayToEndTimeNotification)) { _ in
+                errorMessage = "Channel '\(name)' failed to play. The stream may be offline or unavailable."
+                showErrorAlert = true
+                isLoading = false
+            }
+            .onReceive(NotificationCenter.default.publisher(for: AVPlayerItem.playbackStalledNotification)) { _ in
+                errorMessage = "Channel '\(name)' playback stalled. This could be due to network issues or the stream being unavailable."
+                showErrorAlert = true
+                isLoading = false
+            }
+            .onReceive(Timer.publish(every: 1.75, on: .main, in: .common).autoconnect()) { _ in
+                if let player = pvc.videoController.player, player.rate == 1 {
+                    isLoading = false
+                }
+            }
+            
+            .onReceive(NotificationCenter.default.publisher(for: UIDevice.orientationDidChangeNotification)) { _ in
+                isPortrait = updatePortrait()
+            }
+            .onAppear {
+                isPortrait = updatePortrait()
+                plo.channelName = name
+                
+                if let player = pvc.videoController.player, player.rate == 1 {
+                    isLoading = false
+                } else {
+                    isLoading = true
+                }
+
+            }
+        }
+    }
+    
+    func toggleFavorite() {
+        if favorites.contains(streamID) {
+            favorites.removeAll { $0 == streamID }
+        } else {
+            favorites.append(streamID)
+        }
+        UserDefaults.standard.set(favorites, forKey: "favoriteChannels")
+        NotificationCenter.default.post(name: NSNotification.Name("FavoritesChanged"), object: nil)
     }
     
     func performMagicTap() {

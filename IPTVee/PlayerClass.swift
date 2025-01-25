@@ -39,7 +39,7 @@ public class Player: NSObject {
         //let primaryUrl = URL(string:"https://starplayrx.com:8888/\(todd)/\(boss)/\(good)/\(time)/\(streamId)/hlsx.m3u8")
         //let backupUrl = URL(string:"http://localhost:\(hlsxPort)/\(plo.streamID)/hlsx.m3u8")
         let airplayUrl = URL(string:"http://\(todd):\(boss)/live/\(good)/\(time)/\(streamId).m3u8")
-        
+        //print("http://\(todd):\(boss)/live/\(good)/\(time)/\(streamId).m3u8")
         guard
             //let primaryUrl = primaryUrl,
             //let backupUrl = backupUrl,

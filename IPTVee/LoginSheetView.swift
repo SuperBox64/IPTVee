@@ -9,7 +9,7 @@ import SwiftUI
 import iptvKit
 import AVFoundation
 
-// http://ky-iptv.com:80/player_api.php?username=iantuc&password=pass8224&action=
+// http://ky-iptv.com:80/player_api.php?username=judycu32&password=cusson291&action=
 
 struct LoginSheetView: View {
     @Environment(\.presentationMode) var presentationMode
@@ -22,6 +22,9 @@ struct LoginSheetView: View {
     @State var port: String = LoginObservable.shared.config?.serverInfo.port ?? "80"
     @State var title: String = "IPTVee"
     @State var channelCacheText: String = "Channel Cache"
+    
+    
+    
     var body: some View {
       
         NavigationView {

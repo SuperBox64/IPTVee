@@ -21,6 +21,7 @@ struct CategoriesView: View {
     
     let usaKey = "usa"
     @State var searchText: String = ""
+    @State private var favorites: [Int] = UserDefaults.standard.array(forKey: "favoriteChannels") as? [Int] ?? []
 
     var categorySearchResults: Categories {
         let main = cats
@@ -30,7 +31,20 @@ struct CategoriesView: View {
             .filter { $0.categoryName.lowercased().starts(with: usaKey) }
         let other = main
             .filter { !$0.categoryName.lowercased().starts(with: usaKey) }
-        return usa + other
+        
+        // Create combined results with Favorites at top
+        var allCategories = Categories()
+        
+        // Add Favorites category
+        if searchText.isEmpty {
+            allCategories.append(contentsOf: [cats[0]])  // Use first category as template
+            allCategories[0].categoryID = "favorites"    // Override its properties
+            allCategories[0].categoryName = "⭐ Favorites (\(favorites.count))"
+        }
+        
+        allCategories.append(contentsOf: usa)
+        allCategories.append(contentsOf: other)
+        return allCategories
     }
     
     @State var isPortrait: Bool = false
@@ -81,6 +95,9 @@ struct CategoriesView: View {
                 .disableAutocorrection(true)
                 .navigationBarTitleDisplayMode(.inline)
                 .navigationBarTitle("IPTVee")
+                .onReceive(NotificationCenter.default.publisher(for: NSNotification.Name("FavoritesChanged"))) { _ in
+                    favorites = UserDefaults.standard.array(forKey: "favoriteChannels") as? [Int] ?? []
+                }
                 if isPad && isPortrait {
                     VStack {
                         
