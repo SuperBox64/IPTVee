@@ -66,60 +66,17 @@ struct ChannelsView: View {
     }
 
     var body: some View {
-        
-        
         Form {
-            ForEach(Array(channelSearchResults),id: \.id) { ch in
-                HStack {
-                    NavigationLink(destination: PlayerView(streamID: ch.streamID, name: ch.name, streamIcon: ch.streamIcon, categoryName: categoryName, epgChannelId: ch.epgChannelID ))  {
-                        HStack {
-                            Text(String(ch.num))
-                                .fontWeight(.bold)
-                                .font(.system(size: 20, design: .default))
-                                .frame(minWidth: 60, idealWidth: 80, alignment: .trailing)
-                                .fixedSize(horizontal: false, vertical: true)
-                                .foregroundColor(plo.previousStreamID == ch.streamID ? .white : .primary)
-                            VStack (alignment: .leading, spacing: 0) {
-                                Text(ch.name.deletingPrefix(usa))
-                                    .font(.system(size: 19, design: .default))
-                                    .fontWeight(.semibold)
-                                    .fixedSize(horizontal: false, vertical: true)
-                                    .foregroundColor(plo.previousStreamID == ch.streamID ? .white : .primary)
-                                LazyVStack (alignment: .leading, spacing: 0) {
-                                    if let npl = cha.nowPlayingLive[ch.epgChannelID ?? ""]?.first,
-                                       let start = npl.start.toDate()?.toString(),
-                                       let stop = npl.stop.toDate()?.toString() {
-                                        Text("\(start) — \(stop)\n\(npl.title)")
-                                            .font(.system(size: 18, design: .default))
-                                            .fontWeight(.regular)
-                                            .fixedSize(horizontal: false, vertical: true)
-                                            .foregroundColor(plo.previousStreamID == ch.streamID ? .white : .primary)
-                                    } else if let epgId = ch.epgChannelID {
-                                        Text("\(epgId)")
-                                            .foregroundColor(plo.previousStreamID == ch.streamID ? .white : .orange)
-                                            .font(.system(size: 15, design: .default))
-                                            .fontWeight(.regular)
-                                            .fixedSize(horizontal: false, vertical: true)
-                                    }
-                                }
-                            }
-                        }
-                    }
-                    Button(action: {
-                        toggleFavorite(streamID: ch.streamID)
-                    }) {
-                        Image(systemName: favorites.contains(ch.streamID) ? "star.fill" : "star")
-                            .foregroundColor(.yellow)
-                            .font(.system(size: 22))
-                            .accessibilityLabel(favorites.contains(ch.streamID) ? "Remove from Favorites" : "Add to Favorites")
-                            .accessibilityHint(favorites.contains(ch.streamID) ? "Double tap to remove \(ch.name) from favorites" : "Double tap to add \(ch.name) to favorites")
-                    }
-                    .buttonStyle(BorderlessButtonStyle())
-                }
-                .listRowBackground(plo.previousStreamID == ch.streamID ? Color.accentColor : colorScheme == .dark ? Color(UIColor.systemGray6) : Color.white)
+            ForEach(Array(channelSearchResults), id: \.id) { ch in
+                ChannelRowView(channel: ch, 
+                              categoryName: categoryName, 
+                              favorites: favorites, 
+                              toggleFavorite: toggleFavorite)
             }
         }
         .padding(.bottom, 10)
+        .padding(.leading, -40)
+        .padding(.trailing, -30)
         .searchable(text: $searchText, placement: .navigationBarDrawer(displayMode: .always), prompt: "Search \(categoryName)")
         .disableAutocorrection(true)
         .autocapitalization(.none)
@@ -156,5 +113,146 @@ struct ChannelsView: View {
         }
         UserDefaults.standard.set(favorites, forKey: "favoriteChannels")
         NotificationCenter.default.post(name: NSNotification.Name("FavoritesChanged"), object: nil)
+    }
+}
+
+// Break out the row into its own view to reduce complexity
+struct ChannelRowView: View {
+    let channel: iptvChannel
+    let categoryName: String
+    let favorites: [Int]
+    let toggleFavorite: (Int) -> Void
+    
+    @ObservedObject var plo = PlayerObservable.plo
+    
+    var body: some View {
+        HStack {
+            NavigationLink(destination: PlayerView(streamID: channel.streamID, 
+                                                 name: channel.name, 
+                                                 streamIcon: channel.streamIcon, 
+                                                 categoryName: categoryName, 
+                                                 epgChannelId: channel.epgChannelID)) {
+                ChannelContentView(channel: channel)
+            }
+            
+            FavoriteButton(streamID: channel.streamID, 
+                          favorites: favorites, 
+                          toggleFavorite: toggleFavorite)
+        }
+        .listRowBackground(plo.previousStreamID == channel.streamID ? 
+                         Color.accentColor : 
+                         Color(UIColor.systemGray6))
+    }
+}
+
+struct ChannelContentView: View {
+    let channel: iptvChannel
+    @ObservedObject var plo = PlayerObservable.plo
+    @ObservedObject var cha = ChannelsObservable.shared
+    let usa = "USA "
+    
+    var body: some View {
+        HStack(spacing: 0) {
+            // Channel Image and Number
+            VStack(spacing: 0) {
+                AsyncImage(url: URL(string: channel.streamIcon)) { phase in
+                    switch phase {
+                    case .success(let image):
+                        image
+                            .resizable()
+                            .aspectRatio(contentMode: .fit)
+                            .padding(5)
+                    case .empty, .failure:
+                        // Ensure the fallback app icon image is properly displayed
+                        Image("IPTVeeLogo")
+                            .resizable() // Make the fallback image resizable
+                            .aspectRatio(contentMode: .fit) // Maintain aspect ratio(
+                            .padding(5)
+                    @unknown default:
+                        Image("IPTVeeLogo")
+                            .resizable() // Make the fallback image resizable
+                            .aspectRatio(contentMode: .fit) // Maintain aspect ratio
+                            .padding(5)
+                    }
+                }
+                .frame(width: 80, height: 60)
+                .background(
+                    RoundedRectangle(cornerRadius: 6)
+                        .fill(Color(red: 0.85, green: 0.9, blue: 0.95).opacity(0.25))
+                        .shadow(radius: 1)
+                )
+
+                
+                Text(String(channel.num))
+                    .fontWeight(.bold)
+                    .font(.system(size: 14, design: .default))
+                    .foregroundColor(plo.previousStreamID == channel.streamID ? .white : .primary)
+            }
+            .frame(width: 80, height: 60)
+            .padding(.horizontal)
+
+            // Channel Info
+            ChannelInfoView(channel: channel)
+        }
+    }
+}
+
+struct ChannelInfoView: View {
+    let channel: iptvChannel
+    @ObservedObject var plo = PlayerObservable.plo
+    @ObservedObject var cha = ChannelsObservable.shared
+    let usa = "USA "
+    
+    var body: some View {
+        VStack(alignment: .leading, spacing: 0) {
+            Text(channel.name.deletingPrefix(usa))
+                .font(.system(size: 19, design: .default))
+                .fontWeight(.semibold)
+                .fixedSize(horizontal: false, vertical: true)
+                .foregroundColor(plo.previousStreamID == channel.streamID ? .white : .primary)
+            
+            EPGInfoView(channel: channel)
+        }
+    }
+}
+
+struct EPGInfoView: View {
+    let channel: iptvChannel
+    @ObservedObject var plo = PlayerObservable.plo
+    @ObservedObject var cha = ChannelsObservable.shared
+    
+    var body: some View {
+        LazyVStack(alignment: .leading, spacing: 0) {
+            if let npl = cha.nowPlayingLive[channel.epgChannelID ?? ""]?.first,
+               let start = npl.start.toDate()?.toString(),
+               let stop = npl.stop.toDate()?.toString() {
+                Text("\(start) — \(stop)\n\(npl.title)")
+                    .font(.system(size: 18, design: .default))
+                    .fontWeight(.regular)
+                    .fixedSize(horizontal: false, vertical: true)
+                    .foregroundColor(plo.previousStreamID == channel.streamID ? .white : .primary)
+            } else if let epgId = channel.epgChannelID {
+                Text("\(epgId)")
+                    .foregroundColor(plo.previousStreamID == channel.streamID ? .white : .orange)
+                    .font(.system(size: 15, design: .default))
+                    .fontWeight(.regular)
+                    .fixedSize(horizontal: false, vertical: true)
+            }
+        }
+    }
+}
+
+struct FavoriteButton: View {
+    let streamID: Int
+    let favorites: [Int]
+    let toggleFavorite: (Int) -> Void
+    
+    var body: some View {
+        Button(action: { toggleFavorite(streamID) }) {
+            Image(systemName: favorites.contains(streamID) ? "star.fill" : "star")
+                .foregroundColor(.yellow)
+                .font(.system(size: 22))
+        }
+        .buttonStyle(BorderlessButtonStyle())
     }
 }
