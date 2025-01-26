@@ -36,15 +36,9 @@ public class Player: NSObject {
         let todd: String = lgo.config?.serverInfo.url ?? "primestreams.tv"
         let boss: String = lgo.config?.serverInfo.port ?? "826"
         
-        //let primaryUrl = URL(string:"https://starplayrx.com:8888/\(todd)/\(boss)/\(good)/\(time)/\(streamId)/hlsx.m3u8")
-        //let backupUrl = URL(string:"http://localhost:\(hlsxPort)/\(plo.streamID)/hlsx.m3u8")
         let airplayUrl = URL(string:"http://\(todd):\(boss)/live/\(good)/\(time)/\(streamId).m3u8")
-        //print("http://\(todd):\(boss)/live/\(good)/\(time)/\(streamId).m3u8")
         guard
-            //let primaryUrl = primaryUrl,
-            //let backupUrl = backupUrl,
             let airplayUrl = airplayUrl
-                
         else { return }
     
         func playUrl(_ streamUrl: URL) {
@@ -52,30 +46,14 @@ public class Player: NSObject {
                 let options = [AVURLAssetPreferPreciseDurationAndTimingKey : true, AVURLAssetAllowsCellularAccessKey : true, AVURLAssetAllowsExpensiveNetworkAccessKey : true, AVURLAssetAllowsConstrainedNetworkAccessKey : true, AVURLAssetReferenceRestrictionsKey: true ]
                 
                 guard let player = self.pvc.videoController.player else { return }
-                //let playNowUrl = avSession.currentRoute.outputs.first?.portType == .airPlay || player.isExternalPlaybackActive ? airplayUrl : streamUrl
                 self.plo.streamID = streamId
                 let asset = AVURLAsset.init(url: airplayUrl, options:options)
                 let playerItem = AVPlayerItem(asset: asset, automaticallyLoadedAssetKeys: ["duration"])
                 player.replaceCurrentItem(with: playerItem)
+               
                 player.play()
             }
         }
-        
-//        func starPlayrHLSx() {
-//            rest.textAsync(url: "https://starplayrx.com:8888/eHRybS5tM3U4") { hlsxm3u8 in
-//                let decodedString = (hlsxm3u8?.base64Decoded ?? "This is a really bad error 1.")
-//                primaryUrl.absoluteString.contains(decodedString) ? playUrl(primaryUrl) : localHLSx()
-//            }
-//        }
-        
-//        func localHLSx() {
-//            rest.textAsync(url: "http://localhost:\(hlsxPort)/eHRybS5tM3U4/") { hlsxm3u8 in
-//                let decodedString = (hlsxm3u8?.base64Decoded ?? "This is a really bad error 2.")
-//                backupUrl.absoluteString.contains(decodedString) ? playUrl(backupUrl) : playUrl(airplayUrl)
-//            }
-//        }
-        
         playUrl(airplayUrl)
-        //localHLSx()
     }
 }

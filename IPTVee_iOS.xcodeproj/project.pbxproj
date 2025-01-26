@@ -7,7 +7,6 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
-		6E6AD2322D45A48200CFCA3B /* NukeUI in Frameworks */ = {isa = PBXBuildFile; productRef = 6E6AD2312D45A48200CFCA3B /* NukeUI */; };
 		6F0934842735D626007769A0 /* iOS.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6F0934832735D626007769A0 /* iOS.swift */; };
 		6F15FE16272A205100F05971 /* PlayerSettings.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6F15FE15272A205100F05971 /* PlayerSettings.swift */; };
 		6F307AA9270924FD009A6EF9 /* AVPlayerView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6F307AA8270924FD009A6EF9 /* AVPlayerView.swift */; };
@@ -52,7 +51,6 @@
 			buildActionMask = 2147483647;
 			files = (
 				6FA65FB927113D5C009DA6AF /* iptvKit in Frameworks */,
-				6E6AD2322D45A48200CFCA3B /* NukeUI in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -133,7 +131,6 @@
 			name = IPTVee;
 			packageProductDependencies = (
 				6FA65FB827113D5C009DA6AF /* iptvKit */,
-				6E6AD2312D45A48200CFCA3B /* NukeUI */,
 			);
 			productName = IPTVee;
 			productReference = 6F87E9202702A31700434C6E /* IPTVee.app */;
@@ -164,7 +161,6 @@
 			);
 			mainGroup = 6F87E9172702A31700434C6E;
 			packageReferences = (
-				6E6AD2302D45A48200CFCA3B /* XCRemoteSwiftPackageReference "NukeUI" */,
 			);
 			productRefGroup = 6F87E9212702A31700434C6E /* Products */;
 			projectDirPath = "";
@@ -425,23 +421,7 @@
 		};
 /* End XCConfigurationList section */
 
-/* Begin XCRemoteSwiftPackageReference section */
-		6E6AD2302D45A48200CFCA3B /* XCRemoteSwiftPackageReference "NukeUI" */ = {
-			isa = XCRemoteSwiftPackageReference;
-			repositoryURL = "https://github.com/kean/NukeUI.git";
-			requirement = {
-				kind = upToNextMajorVersion;
-				minimumVersion = 0.8.3;
-			};
-		};
-/* End XCRemoteSwiftPackageReference section */
-
 /* Begin XCSwiftPackageProductDependency section */
-		6E6AD2312D45A48200CFCA3B /* NukeUI */ = {
-			isa = XCSwiftPackageProductDependency;
-			package = 6E6AD2302D45A48200CFCA3B /* XCRemoteSwiftPackageReference "NukeUI" */;
-			productName = NukeUI;
-		};
 		6FA65FB827113D5C009DA6AF /* iptvKit */ = {
 			isa = XCSwiftPackageProductDependency;
 			productName = iptvKit;

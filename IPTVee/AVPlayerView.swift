@@ -7,8 +7,6 @@ import MediaPlayer
 public var avSession = AVAudioSession.sharedInstance()
 
 public struct AVPlayerView: UIViewControllerRepresentable {
-    
-    
     let streamID: Int
     let name: String
     let streamIcon: String
@@ -27,12 +25,12 @@ public struct AVPlayerView: UIViewControllerRepresentable {
     public func makeUIViewController(context: Context) -> AVPlayerViewController {
         guard let _ = pvc.videoController.player else { return pvc.videoController }
 
-        if streamID != plo.previousStreamID {
+        if streamID != plo.previousStreamID || pvc.videoController.player?.rate == 0 {
+            pvc.isBuffering = true
             Player.iptv.Action(streamId: streamID, channelName: name, imageURL: streamIcon)
 
             plo.previousStreamID = streamID
             pvc.videoController = setupPlayerToPlay()
-            //pvc.videoController = setupVideoController()
             setupRemoteTransportControls()
             pvc.videoController.delegate = context.coordinator
             return pvc.videoController
@@ -70,6 +68,7 @@ public func setupVideoController() -> AVPlayerViewController {
     let pvc = PlayerViewControllerObservable.pvc
     guard let _ = pvc.videoController.player else { return pvc.videoController }
     
+    pvc.videoController.loadViewIfNeeded()
     pvc.videoController.showsTimecodes = false
     pvc.videoController.entersFullScreenWhenPlaybackBegins = true
     pvc.videoController.updatesNowPlayingInfoCenter = false
@@ -100,9 +99,9 @@ public func setupPlayerToPlay() -> AVPlayerViewController {
     pvc.videoController.player?.currentItem?.automaticallyHandlesInterstitialEvents = true
     pvc.videoController.player?.currentItem?.seekingWaitsForVideoCompositionRendering = true
     pvc.videoController.player?.currentItem?.appliesPerFrameHDRDisplayMetadata = true
-    pvc.videoController.player?.currentItem?.preferredForwardBufferDuration = 0
+    pvc.videoController.player?.currentItem?.preferredForwardBufferDuration = 10
     pvc.videoController.player?.currentItem?.automaticallyPreservesTimeOffsetFromLive = true
-    pvc.videoController.player?.currentItem?.canUseNetworkResourcesForLiveStreamingWhilePaused = false
+    pvc.videoController.player?.currentItem?.canUseNetworkResourcesForLiveStreamingWhilePaused = true
     pvc.videoController.player?.currentItem?.configuredTimeOffsetFromLive = .init(seconds: 30, preferredTimescale: 1200)
     pvc.videoController.player?.currentItem?.startsOnFirstEligibleVariant = true
     pvc.videoController.player?.currentItem?.variantPreferences = .scalabilityToLosslessAudio

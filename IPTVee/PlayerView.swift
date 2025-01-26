@@ -1,13 +1,13 @@
 import SwiftUI
 import AVKit
 import iptvKit
+import Combine
 
 struct PlayerView: View {
     @State private var showDetails = false
     @State private var orientation = UIDeviceOrientation.unknown
     @State private var showErrorAlert = false
     @State private var errorMessage = ""
-    @State private var isLoading = true
     @State private var favorites: [Int] = UserDefaults.standard.array(forKey: "favoriteChannels") as? [Int] ?? []
     
     @ObservedObject var plo = PlayerObservable.plo
@@ -37,7 +37,7 @@ struct PlayerView: View {
     }
     
     @State var isPortrait: Bool = false
-    
+
     private var playerContent: some View {
         let avPlayerView = AVPlayerView(streamID: streamID, name: name, streamIcon: streamIcon)
         
@@ -54,13 +54,18 @@ struct PlayerView: View {
                     .navigationBarHidden(true)
             }
             
-            if isLoading && pvc.videoController.player?.rate != 0 {
+            if pvc.isBuffering {
                 ProgressView()
                     .progressViewStyle(CircularProgressViewStyle(tint: .white))
-                    .scaleEffect(1.5)
-                    .offset(y: -50)  // Move spinner up to not cover controls
+                    .scaleEffect(1.75)
+                    .offset(y:10)
+                    .onReceive(Timer.publish(every: 2.2, on: .main, in: .common).autoconnect()) { _ in
+                        pvc.isBuffering = pvc.videoController.player?.rate != 1
+                    }
             }
+           
         }
+        
     }
     
     private var nowPlayingContent: some View {
@@ -101,17 +106,10 @@ struct PlayerView: View {
             .onReceive(NotificationCenter.default.publisher(for: AVPlayerItem.failedToPlayToEndTimeNotification)) { _ in
                 errorMessage = "Channel '\(name)' failed to play. The stream may be offline or unavailable."
                 showErrorAlert = true
-                isLoading = false
             }
             .onReceive(NotificationCenter.default.publisher(for: AVPlayerItem.playbackStalledNotification)) { _ in
                 errorMessage = "Channel '\(name)' playback stalled. This could be due to network issues or the stream being unavailable."
                 showErrorAlert = true
-                isLoading = false
-            }
-            .onReceive(Timer.publish(every: 1.75, on: .main, in: .common).autoconnect()) { _ in
-                if let player = pvc.videoController.player, player.rate == 1 {
-                    isLoading = false
-                }
             }
             
             .onReceive(NotificationCenter.default.publisher(for: UIDevice.orientationDidChangeNotification)) { _ in
@@ -121,12 +119,6 @@ struct PlayerView: View {
                 isPortrait = updatePortrait()
                 plo.channelName = name
                 
-                if let player = pvc.videoController.player, player.rate == 1 {
-                    isLoading = false
-                } else {
-                    isLoading = true
-                }
-
             }
         }
     }

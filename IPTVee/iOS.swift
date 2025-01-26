@@ -108,4 +108,5 @@ extension UIImage {
 class PlayerViewControllerObservable: ObservableObject {
     static public var pvc = PlayerViewControllerObservable()
     @Published public var videoController: AVPlayerViewController = AVPlayerViewController()
+    @Published public var isBuffering: Bool = false
 }
