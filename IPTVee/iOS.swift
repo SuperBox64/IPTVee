@@ -24,7 +24,6 @@ func resizeImage(image: UIImage, targetSize: CGSize) -> UIImage {
     return UIImage()
 }
 
-
 public func setnowPlayingInfo(channelName:String, image: UIImage?) {
     /*   let nowPlayingInfoCenter = MPNowPlayingInfoCenter.default()
      var nowPlayingInfo = nowPlayingInfoCenter.nowPlayingInfo ?? [String: Any]()
@@ -70,12 +69,8 @@ public extension UIDevice {
     }
 }
 
-
-
 extension UIImage {
-    
     func squareMe() -> UIImage {
-        
         var squareImage = self
         let maxSize = max(self.size.height, self.size.width)
         let squareSize = CGSize(width: maxSize, height: maxSize)
@@ -99,7 +94,6 @@ extension UIImage {
             UIGraphicsEndImageContext()
             
         }
-        
         return squareImage
     }
 }
@@ -108,5 +102,4 @@ extension UIImage {
 class PlayerViewControllerObservable: ObservableObject {
     static public var pvc = PlayerViewControllerObservable()
     @Published public var videoController: AVPlayerViewController = AVPlayerViewController()
-    @Published public var isBuffering: Bool = false
 }

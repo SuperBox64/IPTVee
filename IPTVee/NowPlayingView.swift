@@ -19,7 +19,7 @@ extension Text {
 struct NowPlayingView: View {
     @ObservedObject var plo = PlayerObservable.plo
     @ObservedObject var cha = ChannelsObservable.shared
-
+    
     var isPad: Bool {
         UIDevice.current.userInterfaceIdiom == .pad
     }
@@ -38,7 +38,7 @@ struct NowPlayingView: View {
                 if let npl = cha.nowPlayingLive[epgChannelId ?? ""] {
                     Section(header: Text("Program Guide").SectionHeader()) {
                         ForEach(npl.prefix(4),id: \.id) { epg in
-                                
+                            
                             HStack {
                                 //epg.start.toDate()?.userTimeZone().toString()
                                 Text(epg.start.toDate()?.toString() ?? "")
@@ -80,7 +80,7 @@ struct NowPlayingView: View {
                                 .fontWeight(.medium)
                                 .multilineTextAlignment(.leading)
                                 .fixedSize(horizontal: false, vertical: true)
-                        }  
+                        }
                     }
                 }
                 

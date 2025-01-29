@@ -15,7 +15,7 @@ public class Player: NSObject {
     var pvc = PlayerViewControllerObservable.pvc
     var lgo = LoginObservable.shared
     var cha = ChannelsObservable.shared
-
+    
     static public let iptv = Player()
     public func Action(streamId: Int, channelName: String, imageURL: String) {
         plo.streamID = streamId
@@ -38,9 +38,9 @@ public class Player: NSObject {
         
         let airplayUrl = URL(string:"http://\(todd):\(boss)/live/\(good)/\(time)/\(streamId).m3u8")
         guard
-            let airplayUrl = airplayUrl
+            let airplayUrl
         else { return }
-    
+        
         func playUrl(_ streamUrl: URL) {
             DispatchQueue.main.async {
                 let options = [AVURLAssetPreferPreciseDurationAndTimingKey : true, AVURLAssetAllowsCellularAccessKey : true, AVURLAssetAllowsExpensiveNetworkAccessKey : true, AVURLAssetAllowsConstrainedNetworkAccessKey : true, AVURLAssetReferenceRestrictionsKey: true ]
@@ -50,7 +50,6 @@ public class Player: NSObject {
                 let asset = AVURLAsset.init(url: airplayUrl, options:options)
                 let playerItem = AVPlayerItem(asset: asset, automaticallyLoadedAssetKeys: ["duration"])
                 player.replaceCurrentItem(with: playerItem)
-               
                 player.play()
             }
         }

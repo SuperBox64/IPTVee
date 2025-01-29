@@ -46,7 +46,7 @@ struct ChannelsView: View {
         
         return channels
             .filter{"\($0.num)\($0.name)\(cha.nowPlayingLive[$0.epgChannelID ?? ""]?.first?.title ?? "")"
-            .lowercased()
+                .lowercased()
                 .contains(searchText.lowercased()) || searchText.isEmpty}
             .sorted{$0.num < $1.num}
     }
@@ -64,14 +64,14 @@ struct ChannelsView: View {
         }
         return scene.interfaceOrientation.isPortrait
     }
-
+    
     var body: some View {
         Form {
             ForEach(Array(channelSearchResults), id: \.id) { ch in
                 ChannelRowView(channel: ch, 
-                              categoryName: categoryName, 
-                              favorites: favorites, 
-                              toggleFavorite: toggleFavorite)
+                               categoryName: categoryName, 
+                               favorites: favorites, 
+                               toggleFavorite: toggleFavorite)
             }
         }
         .padding(.bottom, 10)
@@ -128,20 +128,20 @@ struct ChannelRowView: View {
     var body: some View {
         HStack {
             NavigationLink(destination: PlayerView(streamID: channel.streamID, 
-                                                 name: channel.name, 
-                                                 streamIcon: channel.streamIcon, 
-                                                 categoryName: categoryName, 
-                                                 epgChannelId: channel.epgChannelID)) {
+                                                   name: channel.name, 
+                                                   streamIcon: channel.streamIcon, 
+                                                   categoryName: categoryName, 
+                                                   epgChannelId: channel.epgChannelID)) {
                 ChannelContentView(channel: channel)
             }
             
             FavoriteButton(streamID: channel.streamID, 
-                          favorites: favorites, 
-                          toggleFavorite: toggleFavorite)
+                           favorites: favorites, 
+                           toggleFavorite: toggleFavorite)
         }
         .listRowBackground(plo.previousStreamID == channel.streamID ? 
-                         Color.accentColor : 
-                         Color(UIColor.systemGray6))
+                           Color.accentColor : 
+                            Color(UIColor.systemGray6))
     }
 }
 
@@ -181,7 +181,7 @@ struct ChannelContentView: View {
                         .fill(Color(red: 0.85, green: 0.9, blue: 0.95).opacity(0.25))
                         .shadow(radius: 1)
                 )
-
+                
                 
                 Text(String(channel.num))
                     .fontWeight(.bold)
@@ -190,7 +190,7 @@ struct ChannelContentView: View {
             }
             .frame(width: 80, height: 60)
             .padding(.horizontal)
-
+            
             // Channel Info
             ChannelInfoView(channel: channel)
         }

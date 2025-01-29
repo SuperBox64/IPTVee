@@ -9,21 +9,16 @@ import SwiftUI
 import iptvKit
 import AVFoundation
 
-// http://ky-iptv.com:80/player_api.php?username=judycu32&password=cusson291&action=
-
 struct LoginSheetView: View {
     @Environment(\.presentationMode) var presentationMode
     @ObservedObject var obs = LoginObservable.shared
-    // https://primestreams.tv:826/xmltv.php?username=Bobby2032&password=r1aBngmoW9
-    @State var userName: String = LoginObservable.shared.config?.userInfo.username ?? "" //"Bobby2032" //"nicemac65"
-    @State var passWord: String = LoginObservable.shared.config?.userInfo.password ?? "" //"r1aBngmoW9" //"pass65181"
-    @State var service: String = LoginObservable.shared.config?.serverInfo.url ?? "ky-iptv.com" //"primestreams.tv" //
+    @State var userName: String = LoginObservable.shared.config?.userInfo.username ?? ""
+    @State var passWord: String = LoginObservable.shared.config?.userInfo.password ?? ""
+    @State var service: String = LoginObservable.shared.config?.serverInfo.url ?? "ky-iptv.com"
     @State var https: Bool = false
     @State var port: String = LoginObservable.shared.config?.serverInfo.port ?? "80"
     @State var title: String = "IPTVee"
     @State var channelCacheText: String = "Channel Cache"
-    
-    
     
     var body: some View {
       

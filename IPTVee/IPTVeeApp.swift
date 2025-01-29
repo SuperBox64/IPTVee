@@ -29,7 +29,6 @@ struct IPTVapp: App {
                     BlendInHomeIndicatorController(rootView: contentView)
                 }
                 .statusBar(hidden: isPad)
-                
         }
     }
     
@@ -57,15 +56,13 @@ struct IPTVapp: App {
         override var preferredStatusBarStyle: UIStatusBarStyle {
             .default
         }
-        
     }
-    
 }
 
 func loadUserDefaults() {
     if let data = UserDefaults.standard.value(forKey:userSettings) as? Data,
        let disk = try? PropertyListDecoder().decode(Config.self, from: data) {
-
+        
         LoginObservable.shared.config = disk
     }
 }
@@ -110,13 +107,11 @@ var isPhone: Bool {
     UIDevice.current.userInterfaceIdiom == .phone
 }
 
-
 func updatePortrait() -> Bool {
     if UIDevice.current.orientation.isPortrait { return true}
     if UIDevice.current.orientation.isLandscape { return false}
     return isPortraitFallback
 }
-
 
 var isPortraitFallback: Bool {
     guard let scene = UIApplication.shared.connectedScenes.first as? UIWindowScene else {

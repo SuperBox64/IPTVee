@@ -2,6 +2,7 @@ import SwiftUI
 import AVKit
 import iptvKit
 import Combine
+import AVFoundation
 
 struct PlayerView: View {
     @State private var showDetails = false
@@ -9,7 +10,6 @@ struct PlayerView: View {
     @State private var showErrorAlert = false
     @State private var errorMessage = ""
     @State private var favorites: [Int] = UserDefaults.standard.array(forKey: "favoriteChannels") as? [Int] ?? []
-    
     @ObservedObject var plo = PlayerObservable.plo
     @ObservedObject var pvc = PlayerViewControllerObservable.pvc
     
@@ -17,7 +17,10 @@ struct PlayerView: View {
     @State var name: String = ""
     @State var streamIcon: String = ""
     @State var categoryName: String = ""
-    @State var videoStarted: Bool = false
+    @State var videoStarted: Bool = true
+    @State var stopProgress: Bool = false
+    @State var repeater: TimeInterval = 0.1
+
     let epgChannelId: String?
     
     var isPortraitFallback: Bool {
@@ -37,7 +40,7 @@ struct PlayerView: View {
     }
     
     @State var isPortrait: Bool = false
-
+    
     private var playerContent: some View {
         let avPlayerView = AVPlayerView(streamID: streamID, name: name, streamIcon: streamIcon)
         
@@ -54,16 +57,14 @@ struct PlayerView: View {
                     .navigationBarHidden(true)
             }
             
-            if pvc.isBuffering {
+            if !stopProgress {
                 ProgressView()
                     .progressViewStyle(CircularProgressViewStyle(tint: .white))
                     .scaleEffect(1.75)
                     .offset(y:10)
-                    .onReceive(Timer.publish(every: 2.2, on: .main, in: .common).autoconnect()) { _ in
-                        pvc.isBuffering = pvc.videoController.player?.rate != 1
-                    }
+                
             }
-           
+            
         }
         
     }
@@ -98,19 +99,45 @@ struct PlayerView: View {
                     }
                 }
             }
-            .alert("Playback Error", isPresented: $showErrorAlert) {
+            .alert("\(name)", isPresented: $showErrorAlert) {
+                
                 Button("OK", role: .cancel) { }
             } message: {
                 Text(errorMessage)
             }
-            .onReceive(NotificationCenter.default.publisher(for: AVPlayerItem.failedToPlayToEndTimeNotification)) { _ in
-                errorMessage = "Channel '\(name)' failed to play. The stream may be offline or unavailable."
-                showErrorAlert = true
+            .onReceive(Timer.publish(every: repeater, on: .main, in: .common).autoconnect()) { _ in
+                if pvc.videoController.player?.currentItem?.status == .readyToPlay {
+                    stopProgress = true
+                    repeater = 2.0
+                    
+                    if let tracks = pvc.videoController.player?.currentItem?.tracks {
+                        var audioTrackFound: Bool = false
+                        for track in tracks {
+                            if track.assetTrack?.mediaType == .audio {
+                                audioTrackFound = true
+                            }
+                        }
+                        
+                        if !audioTrackFound, !showErrorAlert && videoStarted {
+                            AudioServicesPlaySystemSound(1125)
+                            videoStarted.toggle()
+                            stopProgress = true
+                            errorMessage = "Stream is not valid. It's missing an audio track."
+                            showErrorAlert = true
+                        }
+                    }
+                }
+                
+                if let error = pvc.videoController.player?.currentItem?.error, !showErrorAlert && videoStarted {
+                    AudioServicesPlaySystemSound(1125)
+                    videoStarted.toggle()
+                    stopProgress = true
+                    errorMessage = "\(error.localizedDescription)"
+                    showErrorAlert = true
+                }
+             
             }
-            .onReceive(NotificationCenter.default.publisher(for: AVPlayerItem.playbackStalledNotification)) { _ in
-                errorMessage = "Channel '\(name)' playback stalled. This could be due to network issues or the stream being unavailable."
-                showErrorAlert = true
-            }
+            
             
             .onReceive(NotificationCenter.default.publisher(for: UIDevice.orientationDidChangeNotification)) { _ in
                 isPortrait = updatePortrait()
@@ -136,7 +163,7 @@ struct PlayerView: View {
     func performMagicTap() {
         pvc.videoController.player?.rate == 1 ? pvc.videoController.player?.pause() : pvc.videoController.player?.play()
     }
-
+    
     //Back burner
     func skipForward(_ videoController: AVPlayerViewController ) {
         let seekDuration: Double = 10

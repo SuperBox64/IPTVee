@@ -9,7 +9,6 @@ import SwiftUI
 import iptvKit
 
 struct CategoriesView: View {
-    
     @Environment(\.presentationMode) var presentationMode
     
     @State var isActive: Bool = false
@@ -22,7 +21,7 @@ struct CategoriesView: View {
     let usaKey = "usa"
     @State var searchText: String = ""
     @State private var favorites: [Int] = UserDefaults.standard.array(forKey: "favoriteChannels") as? [Int] ?? []
-
+    
     var categorySearchResults: Categories {
         let main = cats
             .filter { $0.categoryName.lowercased().contains(searchText.lowercased() ) || searchText.isEmpty }
@@ -36,11 +35,9 @@ struct CategoriesView: View {
         var allCategories = Categories()
         
         // Add Favorites category
-        if searchText.isEmpty {
-            allCategories.append(contentsOf: [cats[0]])  // Use first category as template
-            allCategories[0].categoryID = "favorites"    // Override its properties
-            allCategories[0].categoryName = "⭐ Favorites (\(favorites.count))"
-        }
+        allCategories.append(contentsOf: [cats[0]])  // Use first category as template
+        allCategories[0].categoryID = "favorites"    // Override its properties
+        allCategories[0].categoryName = "⭐ Favorites (\(favorites.count))"
         
         allCategories.append(contentsOf: usa)
         allCategories.append(contentsOf: other)
@@ -51,7 +48,6 @@ struct CategoriesView: View {
     
     var body: some View {
         if !lgo.isLoggedIn {
-            
             VStack {
                 AboutScreenView()
                 Button(action: {lgo.showingLogin = true}) {
@@ -59,7 +55,6 @@ struct CategoriesView: View {
                 }
                 Spacer()
             }
-            
         } else {
             NavigationView {
                 Form {
@@ -109,14 +104,12 @@ struct CategoriesView: View {
                     }
                     .padding(.bottom, 45)
                 }
-    
+                
             }
             .onAppear {
                 refreshNowPlayingEpgBytes()
             }
             .padding(.top, -10)
-            
         }
     }
 }
-

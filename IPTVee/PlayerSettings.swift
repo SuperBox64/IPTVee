@@ -9,12 +9,11 @@ import SwiftUI
 import iptvKit
 
 struct PlayerSettings: View {
-
     @ObservedObject var settings = SettingsObservable.shared
-
+    
     var body: some View {
         GeometryReader { geometry in
-        
+            
             List {
                 Section(header: Text("Device")) {
                     Toggle("Xtreme HLS", isOn: $settings.deviceHLSXtrem)
@@ -39,7 +38,7 @@ struct PlayerSettings: View {
                 readPlayerSettings()
             }
             .onDisappear{
-               savePlayerSettings()
+                savePlayerSettings()
             }
         }
     }
