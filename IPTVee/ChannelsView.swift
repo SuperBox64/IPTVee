@@ -246,13 +246,22 @@ struct FavoriteButton: View {
     let streamID: Int
     let favorites: [Int]
     let toggleFavorite: (Int) -> Void
+    @ObservedObject var cha = ChannelsObservable.shared  // Added to get channel name
     
     var body: some View {
         Button(action: { toggleFavorite(streamID) }) {
-            Image(systemName: favorites.contains(streamID) ? "star.fill" : "star")
+            Image(systemName:                                          favorites.contains(streamID) ? "star.fill" : "star")
                 .foregroundColor(.yellow)
                 .font(.system(size: 22))
         }
         .buttonStyle(BorderlessButtonStyle())
+        .accessibilityLabel(favorites.contains(streamID) ? "Remove from Favorites" : "Add to Favorites")
+        .accessibilityHint(favorites.contains(streamID) ? 
+            "Double tap to remove \(channelName)" : 
+            "Double tap to add \(channelName)")
+    }
+    
+    private var channelName: String {
+        cha.chan.first(where: { $0.streamID == streamID })?.name ?? "channel"
     }
 }

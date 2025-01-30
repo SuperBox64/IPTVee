@@ -94,9 +94,12 @@ struct PlayerView: View {
                         Image(systemName: favorites.contains(streamID) ? "star.fill" : "star")
                             .foregroundColor(.yellow)
                             .font(.system(size: 22))
-                            .accessibilityLabel(favorites.contains(streamID) ? "Remove from Favorites" : "Add to Favorites")
-                            .accessibilityHint(favorites.contains(streamID) ? "Double tap to remove \(name) from favorites" : "Double tap to add \(name) to favorites")
-                    }
+                           
+                    } 
+                    .accessibilityLabel(favorites.contains(streamID) ? "Remove from Favorites" : "Add to Favorites")
+                    .accessibilityHint(favorites.contains(streamID) ?
+                                       "Double tap to remove \(name)" :
+                                        "Double tap to add \(name)")
                 }
             }
             .alert("\(name)", isPresented: $showErrorAlert) {
